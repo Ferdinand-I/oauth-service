@@ -61,7 +61,7 @@
             gap: 12px;
         }
 
-        .btn-google {
+        .btn-oauth {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -72,12 +72,15 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-google {
             background: white;
             color: #333;
-            text-decoration: none;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             border: 1px solid #ddd;
-            transition: all 0.2s ease;
         }
 
         .btn-google:hover {
@@ -85,8 +88,43 @@
             transform: translateY(-2px);
         }
 
-        .btn-google svg {
+        .btn-yandex {
+            background: #FC3F1D;
+            color: white;
+            box-shadow: 0 2px 8px rgba(252, 63, 29, 0.3);
+        }
+
+        .btn-yandex:hover {
+            background: #E63100;
+            box-shadow: 0 4px 12px rgba(252, 63, 29, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-oauth svg {
             flex-shrink: 0;
+        }
+
+        .yandex-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 3px;
+            font-weight: 700;
+            font-size: 16px;
+            color: #FC3F1D;
+            font-family: Arial, sans-serif;
+        }
+
+        #buttonContainerId {
+            display: flex;
+            justify-content: center;
+        }
+
+        #buttonContainerId iframe {
+            border-radius: 8px;
         }
 
         .event-container {
@@ -194,7 +232,7 @@
             }
 
             button,
-            .btn-google {
+            .btn-oauth {
                 width: 100%;
                 padding: 16px 20px;
                 font-size: 15px;
@@ -253,7 +291,7 @@
     <div class="card">
         <h1>Welcome</h1>
         <div class="buttons">
-            <a href="/api/google/auth/login" class="btn btn-google">
+            <a href="/api/google/auth/login" class="btn-oauth btn-google">
                 <svg viewBox="0 0 24 24" width="20" height="20">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -262,7 +300,13 @@
                 </svg>
                 Войти через Google
             </a>
-            <button id="fetchBtn" onclick="getEvent()">Получить событие из календаря</button>
+            <a href="/api/yandex/auth/login" class="btn-oauth btn-yandex">
+                <span class="yandex-icon">Я</span>
+                Войти через Яндекс
+            </a>
+            <button id="fetchBtn" onclick="getEvent()">
+                📅 Получить событие из Google Календаря
+            </button>
         </div>
 
         <div id="eventContainer" class="event-container">
@@ -300,7 +344,7 @@
                 container.classList.add('visible');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Получить последнее событие из календаря';
+                btn.innerHTML = '📅 Получить событие из Google Календаря';
             }
         }
 

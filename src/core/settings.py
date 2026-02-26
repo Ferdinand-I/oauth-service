@@ -50,8 +50,34 @@ class GoogleOAauth2Config(BaseSettingsConfig):
         return f"{self.google_auth_url}?{urlencode(params)}"
 
 
+class YandexOAauth2Config(BaseSettingsConfig):
+    client_id: str
+    client_secret: SecretStr
+    redirect_uri: str = "http://127.0.0.1:8000/api/yandex/auth/callback"
+
+    # Common
+    yandex_auth_url: str = "https://oauth.yandex.ru/authorize"
+    yandex_token_url: str = "https://oauth.yandex.ru/token"
+
+    def get_auth_url(self, state: str) -> str:
+        """Generate OAuth URL with CSRF state parameter."""
+
+        params = {
+            "response_type": "code",
+            "client_id": self.client_id,
+            "redirect_uri": self.redirect_uri,
+            "state": state,
+        }
+
+        return f"{self.yandex_auth_url}?{urlencode(params)}"
+
+
 class GoogleConfig(BaseSettingsConfig):
     oauth: GoogleOAauth2Config
+
+
+class YandexConfig(BaseSettingsConfig):
+    oauth: YandexOAauth2Config
 
 
 class SecurityConfig(BaseSettingsConfig):
@@ -67,6 +93,7 @@ class ServerConfig(BaseSettingsConfig):
 class Settings(BaseSettingsConfig):
     server: ServerConfig
     google: GoogleConfig
+    yandex: YandexConfig
     security: SecurityConfig = SecurityConfig()
 
 

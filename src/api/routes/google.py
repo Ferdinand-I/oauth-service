@@ -4,10 +4,9 @@ from fastapi import APIRouter, Query, Depends, status
 from starlette.responses import RedirectResponse
 
 from api.deps.auth import GoogleOAuthInitData, get_google_oauth_init_data, access_token_cookie_scheme
+from api.deps.cookies import set_state_cookie, set_access_token_cookie, delete_state_cookie
 from api.deps.getters import get_google_client
 from api.deps.validators import validate_google_oauth_state
-from core.constants import STATE_COOKIE_NAME, ACCESS_TOKEN_COOKIE_NAME
-from core.settings import settings
 from integrations.google.client import GoogleClient
 from integrations.google.schemas import CalendarListResponseSchema
 
@@ -23,15 +22,7 @@ def login(
     oauth_init_data: Annotated[GoogleOAuthInitData, Depends(get_google_oauth_init_data)],
 ) -> RedirectResponse:
     response = RedirectResponse(oauth_init_data.url)
-
-    response.set_cookie(
-        key=STATE_COOKIE_NAME,
-        value=oauth_init_data.state,
-        httponly=True,
-        secure=settings.security.cookie_secure,
-        samesite="lax",  # lax needed for OAuth redirect
-        max_age=600,  # 10 minutes
-    )
+    set_state_cookie(response, oauth_init_data.state)
 
     return response
 
@@ -49,17 +40,8 @@ async def callback(
     tokens = await client.get_auth_tokens(code)
 
     response = RedirectResponse(url="/")
-    response.set_cookie(
-        key=ACCESS_TOKEN_COOKIE_NAME,
-        value=tokens.access_token,
-        httponly=True,
-        path="/api/google",
-        secure=settings.security.cookie_secure,
-        samesite=settings.security.cookie_samesite,
-        max_age=3600,  # 1 hour
-    )
-
-    response.delete_cookie(STATE_COOKIE_NAME)
+    set_access_token_cookie(response, tokens.access_token, path="/api/google")
+    delete_state_cookie(response)
 
     return response
 

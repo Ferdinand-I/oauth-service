@@ -1,5 +1,6 @@
 import dataclasses
 import secrets
+from typing import TypeAlias
 
 from fastapi.security import APIKeyCookie
 
@@ -11,15 +12,34 @@ state_cookie_scheme = APIKeyCookie(name=STATE_COOKIE_NAME)
 
 
 @dataclasses.dataclass
-class GoogleOAuthInitData:
+class OAuthInitData:
+    """OAuth initialization data with auth URL and CSRF state token."""
+
     url: str
     state: str
 
 
+GoogleOAuthInitData: TypeAlias = OAuthInitData
+YandexOAuthInitData: TypeAlias = OAuthInitData
+
+
 def get_google_oauth_init_data() -> GoogleOAuthInitData:
+    """Generate Google OAuth initialization data with CSRF protection."""
+
     state = secrets.token_urlsafe(32)
 
-    return GoogleOAuthInitData(
+    return OAuthInitData(
         url=settings.google.oauth.get_auth_url(state),
+        state=state,
+    )
+
+
+def get_yandex_oauth_init_data() -> YandexOAuthInitData:
+    """Generate Yandex OAuth initialization data with CSRF protection."""
+
+    state = secrets.token_urlsafe(32)
+
+    return OAuthInitData(
+        url=settings.yandex.oauth.get_auth_url(state),
         state=state,
     )
