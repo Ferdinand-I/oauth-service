@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Query, Depends, status
-from starlette.responses import RedirectResponse
+from fastapi.responses import RedirectResponse
 
 from api.deps.auth import GoogleOAuthInitData, get_google_oauth_init_data, google_access_token_cookie_scheme
 from api.deps.cookies import set_state_cookie, set_access_token_cookie, delete_state_cookie
