@@ -1,4 +1,4 @@
-from starlette.responses import Response
+from fastapi import Response
 
 from core.constants import (
     STATE_COOKIE_NAME,
