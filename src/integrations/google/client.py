@@ -38,7 +38,7 @@ class GoogleClient(BaseAPIClient):
         else:
             raise GoogleAPIError(400, f"Failed to {context.lower()}.")
 
-    async def get_tokens(self, code: str) -> GoogleTokenResponseSchema:
+    async def get_auth_tokens(self, code: str) -> GoogleTokenResponseSchema:
         async with self.session.post(
             url=settings.google.oauth.google_token_url,
             data=GoogleTokenRequestSchema(code=code).model_dump(),
