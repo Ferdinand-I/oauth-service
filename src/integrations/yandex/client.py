@@ -6,6 +6,7 @@ from integrations.yandex.exceptions import YandexAPIError
 from integrations.yandex.schemas import (
     YandexTokenRequestSchema,
     YandexTokenResponseSchema,
+    YandexUserInfoSchema,
 )
 
 
@@ -26,6 +27,8 @@ class YandexClient(BaseAPIClient):
             raise YandexAPIError(400, f"Failed to {context.lower()}.")
 
     async def get_auth_tokens(self, code: str) -> YandexTokenResponseSchema:
+        """Exchange authorization code for access token."""
+
         async with self.session.post(
             url=settings.yandex.oauth.yandex_token_url,
             data=YandexTokenRequestSchema(code=code).model_dump(),
@@ -38,3 +41,21 @@ class YandexClient(BaseAPIClient):
             data = await response.json()
 
         return YandexTokenResponseSchema(**data)
+
+    async def get_user_info(self, access_token: str) -> YandexUserInfoSchema:
+        """Get user information from Yandex API."""
+
+        headers = {"Authorization": f"Bearer {access_token}"}
+
+        async with self.session.get(
+            "https://login.yandex.ru/info",
+            headers=headers,
+        ) as response:
+            try:
+                response.raise_for_status()
+            except ClientResponseError as e:
+                self._handle_error(e, "User info")
+
+            data = await response.json()
+
+        return YandexUserInfoSchema(**data)

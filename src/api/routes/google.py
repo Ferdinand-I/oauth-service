@@ -3,10 +3,11 @@ from typing import Annotated
 from fastapi import APIRouter, Query, Depends, status
 from starlette.responses import RedirectResponse
 
-from api.deps.auth import GoogleOAuthInitData, get_google_oauth_init_data, access_token_cookie_scheme
+from api.deps.auth import GoogleOAuthInitData, get_google_oauth_init_data, google_access_token_cookie_scheme
 from api.deps.cookies import set_state_cookie, set_access_token_cookie, delete_state_cookie
 from api.deps.getters import get_google_client
 from api.deps.validators import validate_google_oauth_state
+from core.constants import GOOGLE_ACCESS_TOKEN_COOKIE_NAME
 from integrations.google.client import GoogleClient
 from integrations.google.schemas import CalendarListResponseSchema
 
@@ -40,7 +41,12 @@ async def callback(
     tokens = await client.get_auth_tokens(code)
 
     response = RedirectResponse(url="/")
-    set_access_token_cookie(response, tokens.access_token, path="/api/google")
+    set_access_token_cookie(
+        response,
+        tokens.access_token,
+        cookie_name=GOOGLE_ACCESS_TOKEN_COOKIE_NAME,
+        path="/api/google",
+    )
     delete_state_cookie(response)
 
     return response
@@ -48,7 +54,7 @@ async def callback(
 
 @router.get("/calendar/next-event")
 async def get_next_event(
-    access_token: Annotated[str, Depends(access_token_cookie_scheme)],
+    access_token: Annotated[str, Depends(google_access_token_cookie_scheme)],
     client: Annotated[GoogleClient, Depends(get_google_client)],
 ) -> CalendarListResponseSchema:
     return await client.get_next_calendar_event(access_token)

@@ -17,3 +17,18 @@ class YandexTokenResponseSchema(BaseModel):
     expires_in: int
     token_type: str
     refresh_token: str | None = None
+
+
+class YandexUserInfoSchema(BaseModel):
+    """Schema for Yandex user information."""
+
+    id: str
+    login: str
+    display_name: str | None = None
+    real_name: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    default_email: str | None = None
+    emails: list[str] = []
+    default_avatar_id: str | None = None
+    is_avatar_empty: bool | None = None

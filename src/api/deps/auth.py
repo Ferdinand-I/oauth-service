@@ -4,10 +4,15 @@ from typing import TypeAlias
 
 from fastapi.security import APIKeyCookie
 
-from core.constants import ACCESS_TOKEN_COOKIE_NAME, STATE_COOKIE_NAME
+from core.constants import (
+    STATE_COOKIE_NAME,
+    GOOGLE_ACCESS_TOKEN_COOKIE_NAME,
+    YANDEX_ACCESS_TOKEN_COOKIE_NAME,
+)
 from core.settings import settings
 
-access_token_cookie_scheme = APIKeyCookie(name=ACCESS_TOKEN_COOKIE_NAME)
+google_access_token_cookie_scheme = APIKeyCookie(name=GOOGLE_ACCESS_TOKEN_COOKIE_NAME)
+yandex_access_token_cookie_scheme = APIKeyCookie(name=YANDEX_ACCESS_TOKEN_COOKIE_NAME)
 state_cookie_scheme = APIKeyCookie(name=STATE_COOKIE_NAME)
 
 

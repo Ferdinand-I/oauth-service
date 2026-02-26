@@ -3,11 +3,13 @@ from typing import Annotated
 from fastapi import APIRouter, Query, Depends, status
 from starlette.responses import RedirectResponse
 
-from api.deps.auth import YandexOAuthInitData, get_yandex_oauth_init_data
+from api.deps.auth import YandexOAuthInitData, get_yandex_oauth_init_data, yandex_access_token_cookie_scheme
 from api.deps.cookies import set_state_cookie, set_access_token_cookie, delete_state_cookie
 from api.deps.getters import get_yandex_client
 from api.deps.validators import validate_yandex_oauth_state
+from core.constants import YANDEX_ACCESS_TOKEN_COOKIE_NAME
 from integrations.yandex.client import YandexClient
+from integrations.yandex.schemas import YandexUserInfoSchema
 
 router = APIRouter()
 
@@ -39,7 +41,22 @@ async def callback(
     tokens = await client.get_auth_tokens(code)
 
     response = RedirectResponse(url="/")
-    set_access_token_cookie(response, tokens.access_token, path="/api/yandex")
+    set_access_token_cookie(
+        response,
+        tokens.access_token,
+        cookie_name=YANDEX_ACCESS_TOKEN_COOKIE_NAME,
+        path="/api/yandex",
+    )
     delete_state_cookie(response)
 
     return response
+
+
+@router.get("/user/info")
+async def get_user_info(
+    access_token: Annotated[str, Depends(yandex_access_token_cookie_scheme)],
+    client: Annotated[YandexClient, Depends(get_yandex_client)],
+) -> YandexUserInfoSchema:
+    """Get Yandex user information."""
+
+    return await client.get_user_info(access_token)

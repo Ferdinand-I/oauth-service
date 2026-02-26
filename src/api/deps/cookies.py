@@ -2,7 +2,6 @@ from starlette.responses import Response
 
 from core.constants import (
     STATE_COOKIE_NAME,
-    ACCESS_TOKEN_COOKIE_NAME,
     STATE_COOKIE_MAX_AGE,
     ACCESS_TOKEN_COOKIE_MAX_AGE,
 )
@@ -22,11 +21,13 @@ def set_state_cookie(response: Response, state: str) -> None:
     )
 
 
-def set_access_token_cookie(response: Response, token: str, path: str) -> None:
+def set_access_token_cookie(
+    response: Response, token: str, cookie_name: str, path: str = "/"
+) -> None:
     """Set access token cookie for authenticated requests."""
 
     response.set_cookie(
-        key=ACCESS_TOKEN_COOKIE_NAME,
+        key=cookie_name,
         value=token,
         httponly=True,
         path=path,

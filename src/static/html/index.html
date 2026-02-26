@@ -28,9 +28,23 @@
         }
 
         h1 {
-            margin: 0 0 30px 0;
+            margin: 0 0 10px 0;
             font-size: 42px;
             color: #333;
+        }
+
+        h2 {
+            margin: 30px 0 15px 0;
+            font-size: 18px;
+            color: #666;
+            font-weight: 500;
+            text-align: left;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        h2:first-of-type {
+            margin-top: 20px;
         }
 
         button {
@@ -53,6 +67,15 @@
             background: #ccc;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .btn-yandex-secondary {
+            background: #FFDB4D;
+            color: #000;
+        }
+
+        .btn-yandex-secondary:hover {
+            background: #FFC800;
         }
 
         .buttons {
@@ -150,17 +173,61 @@
             margin-bottom: 15px;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 10px;
         }
 
-        .event-title::before {
-            content: "📅";
+        .event-title-text {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .close-btn:active {
+            transform: scale(0.95);
         }
 
         .event-details {
             display: flex;
             flex-direction: column;
             gap: 12px;
+        }
+
+        .event-card.removing {
+            animation: fadeOut 0.3s ease forwards;
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
         }
 
         .event-row {
@@ -228,7 +295,12 @@
 
             h1 {
                 font-size: 28px;
-                margin-bottom: 20px;
+                margin-bottom: 10px;
+            }
+
+            h2 {
+                font-size: 16px;
+                margin: 20px 0 12px 0;
             }
 
             button,
@@ -251,6 +323,12 @@
             .event-title {
                 font-size: 18px;
                 margin-bottom: 12px;
+            }
+
+            .close-btn {
+                width: 24px;
+                height: 24px;
+                font-size: 18px;
             }
 
             .event-row {
@@ -284,12 +362,18 @@
             h1 {
                 font-size: 36px;
             }
+
+            h2 {
+                font-size: 17px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>Welcome</h1>
+        <h1>OAuth Service</h1>
+
+        <h2>🔐 Авторизация</h2>
         <div class="buttons">
             <a href="/api/google/auth/login" class="btn-oauth btn-google">
                 <svg viewBox="0 0 24 24" width="20" height="20">
@@ -304,13 +388,24 @@
                 <span class="yandex-icon">Я</span>
                 Войти через Яндекс
             </a>
+        </div>
+
+        <h2>📊 Получить данные</h2>
+        <div class="buttons">
             <button id="fetchBtn" onclick="getEvent()">
                 📅 Получить событие из Google Календаря
+            </button>
+            <button id="fetchUserBtn" onclick="getYandexUser()" class="btn-yandex-secondary">
+                👤 Получить данные профиля Яндекс
             </button>
         </div>
 
         <div id="eventContainer" class="event-container">
             <!-- Event data will be inserted here -->
+        </div>
+
+        <div id="userContainer" class="event-container">
+            <!-- User data will be inserted here -->
         </div>
     </div>
 
@@ -355,7 +450,13 @@
 
             return `
                 <div class="event-card">
-                    <div class="event-title">${escapeHtml(title)}</div>
+                    <div class="event-title">
+                        <div class="event-title-text">
+                            <span>📅</span>
+                            <span>${escapeHtml(title)}</span>
+                        </div>
+                        <button class="close-btn" onclick="removeCard(event)" title="Закрыть">×</button>
+                    </div>
                     <div class="event-details">
                         <div class="event-row">
                             <span class="event-icon">🕐</span>
@@ -388,6 +489,93 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        function removeCard(event) {
+            event.stopPropagation();
+            const card = event.currentTarget.closest('.event-card');
+            if (card) {
+                card.classList.add('removing');
+                setTimeout(() => {
+                    const container = card.parentElement;
+                    card.remove();
+                    if (container && container.children.length === 0) {
+                        container.classList.remove('visible');
+                    }
+                }, 300);
+            }
+        }
+
+        async function getYandexUser() {
+            const btn = document.getElementById('fetchUserBtn');
+            const container = document.getElementById('userContainer');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Загрузка...';
+            container.classList.remove('visible');
+
+            try {
+                const response = await fetch('/api/yandex/user/info');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Ошибка загрузки данных');
+                }
+
+                container.innerHTML = renderUserInfo(data);
+                container.classList.add('visible');
+            } catch (error) {
+                container.innerHTML = `<div class="error-message">${error.message}</div>`;
+                container.classList.add('visible');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '👤 Получить данные профиля Яндекс';
+            }
+        }
+
+        function renderUserInfo(user) {
+            const displayName = user.display_name || user.real_name || user.login;
+            const email = user.default_email || (user.emails && user.emails[0]) || 'Не указан';
+            const login = user.login;
+            const firstName = user.first_name || '';
+            const lastName = user.last_name || '';
+            const fullName = `${firstName} ${lastName}`.trim() || displayName;
+
+            return `
+                <div class="event-card" style="background: linear-gradient(135deg, #FC3F1D 0%, #E63100 100%);">
+                    <div class="event-title">
+                        <div class="event-title-text">
+                            <span>👤</span>
+                            <span>${escapeHtml(fullName)}</span>
+                        </div>
+                        <button class="close-btn" onclick="removeCard(event)" title="Закрыть">×</button>
+                    </div>
+                    <div class="event-details">
+                        <div class="event-row">
+                            <span class="event-icon">🔑</span>
+                            <span class="event-label">ID:</span>
+                            <span class="event-value">${escapeHtml(user.id)}</span>
+                        </div>
+                        <div class="event-row">
+                            <span class="event-icon">👤</span>
+                            <span class="event-label">Логин:</span>
+                            <span class="event-value">${escapeHtml(login)}</span>
+                        </div>
+                        <div class="event-row">
+                            <span class="event-icon">📧</span>
+                            <span class="event-label">Email:</span>
+                            <span class="event-value">${escapeHtml(email)}</span>
+                        </div>
+                        ${displayName !== fullName ? `
+                        <div class="event-row">
+                            <span class="event-icon">✨</span>
+                            <span class="event-label">Отображаемое имя:</span>
+                            <span class="event-value">${escapeHtml(displayName)}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
         }
     </script>
 </body>
