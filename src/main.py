@@ -10,7 +10,7 @@ from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates
 
 from api.router import router as api_router
-from core.settings import settings
+from core.settings import settings, ROOT_DIR
 from integrations.google.client import GoogleClient
 
 
@@ -23,7 +23,7 @@ async def lifespan(app_: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(lifespan=lifespan)
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=ROOT_DIR / "src/static"), name="static")
 templates = Jinja2Templates(directory="static/html")
 
 app.include_router(api_router)

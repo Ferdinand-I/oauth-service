@@ -1,0 +1,13 @@
+# Docker compose config for local development
+services:
+  backend:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    container_name: oauth-service
+    env_file: .env
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src  # Just to reload on change, not needed in production
