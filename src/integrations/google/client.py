@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from typing import Self
 
 from aiohttp import ClientResponseError
 
@@ -15,14 +14,6 @@ from integrations.google.schemas import (
 
 
 class GoogleClient(BaseAPIClient):
-    _instance: Self | None = None
-
-    def __new__(cls, *args, **kwargs) -> Self:
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-
-        return cls._instance
-
     @staticmethod
     def _handle_error(e: ClientResponseError, context: str) -> None:
         """Handle API errors with sanitized messages."""
